@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+    <style type="text/css">
+        .row{
+            margin: 5px;
+        }  
+    </style>
+
+    <title>Filter in Table</title>
+  </head>
+  <body>
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <div class="row">
+                    <div class="col">
+                      <select id="ddlStatus" category="choice" name="Status" class="form-control form-control-lg">
+                          <option value="">Select Status</option>
+                      </select>
+                    </div>
+                    <div class="col">
+                      <select id="ddlDepartment" category="lookup" name="Department" class="form-control form-control-lg">
+                          <option value="">Select Department</option>
+                      </select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                      <select id="ddlAsset" category="lookup" name="Asset" class="form-control form-control-lg">
+                          <option value="">Select Asset</option>
+                      </select>
+                    </div>
+                    <div class="col">
+                        <button id="btnSearch" type="button" class="btn btn-primary mb-2">Search</button>
+                    </div>
+                </div>
+                <br><br>
+                <div class="col-12">
+                    <div class="table-responsive">
+                        <table id="tblResults" class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Status</th>
+                                    <th>Department</th>
+                                    <th>Asset</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>  
+    </div>
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+      <script type="text/javascript">
+        var site = _spPageContextInfo.siteAbsoluteUrl;
+        $(document).ready(function(){
+            GetStatus();
+            GetDepartment();
+            GetAsset();
+            filterData("");
+            $('#btnSearch').click(function(){
+                var filter = "";
+                var count = 0;
+                $('select :selected').each(function(index){
+                    if(($(this).val())){
+                        if(count > 0){
+                            filter += "and"
+                        }
+                        if($(this).parent().attr('category') == "lookup"){
+                            filter += "(" + $(this).parent().attr('name') + "/Title eq '" + $(this).val() + "')";
+                        }
+                        else{
+                            filter += "(" + $(this).parent().attr('name') + " eq '" + $(this).val() + "')";
+                        }
+                        count++;
+                    }
+                });
+                $('#tblResults tbody').empty();
+                if(filter != ""){
+                    filterData(filter);
+                }
+                else{
+                    filterData("");
+                }
+
+            })
+        });
+
+
+        function GetStatus(){
+            $.ajax({
+                url: site + "/_vti_bin/listdata.svc/CreateInfoStatus",
+                method: "GET",
+                headers: { "Accept": "application/json;odata=verbose" },
+                async: false,
+                success: function(data){
+                    var result = data.d.results;
+                    if(result.length > 0){
+                        var option = "";
+                        $.each(result, function(index, value){
+                            option += '<option value="' + value.Value + '">' + value.Value + '</option>';
+                        });
+                        $('#ddlStatus').append(option);
+                    }
+                },
+                error: function(data){
+                    alert(data.message);
+                }
+            });
+        }
+          
+        function GetDepartment(){
+            $.ajax({
+                url: site + "/_api/lists/getbytitle('DepartmentList')/items?$select=Title",
+                method: "GET",
+                headers: { "Accept": "application/json;odata=verbose" },
+                async: false,
+                success: function(data){
+                    var result = data.d.results;
+                    if(result.length > 0){
+                        var option = "";
+                        $.each(result, function(index, value){
+                            option += '<option value="' + value.Title + '">' + value.Title + '</option>';
+                        });
+                        $('#ddlDepartment').append(option);
+                    }
+                },
+                error: function(data){
+                    alert(data.message);
+                }
+            })
+        }
+          
+        function GetAsset(){
+            $.ajax({
+                url: site + "/_api/lists/getbytitle('AssetList')/items?$select=Title",
+                method: "GET",
+                headers: { "Accept": "application/json;odata=verbose" },
+                async: false,
+                success: function(data){
+                    var result = data.d.results;
+                    if(result.length > 0){
+                        var option = "";
+                        $.each(result, function(index, value){
+                            option += '<option value="' + value.Title + '">' + value.Title + '</option>';
+                        });
+                        $('#ddlAsset').append(option);
+                    }
+                },
+                error: function(data){
+                    alert(data.message);
+                }
+            })
+        }
+
+        function filterData(filter){
+            if(filter != ""){
+                siteapi = site + "/_api/lists/getbytitle('CreateInfo')/items?$select=Title,Status,Department/Title,Asset/Title&$filter=" + filter + "&$expand=Department,Asset";
+            }
+            else{
+                siteapi = site + "/_api/lists/getbytitle('CreateInfo')/items?$select=Title,Status,Department/Title,Asset/Title&$expand=Department,Asset";
+            }
+            $.ajax({
+                url: siteapi,
+                method: "GET",
+                headers: { "Accept": "application/json;odata=verbose" },
+                async: false,
+                success: function(data){
+                    var result = data.d.results;
+                    var row = "";
+                    if(result.length > 0){
+                        $.each(result, function(index, value){
+                              row += "<tr><td>" + value.Title + "</td><td>" + value.Status + "</td><td>" + value.Department.Title + "</td><td>" + value.Asset.Title + "</td></tr>";
+                        })
+                    }
+                    else{
+                        row += '<tr><td colspan="4">There is no item related to search.</td></tr>';
+                    }
+                    $('#tblResults tbody').append(row);
+                },
+                error: function(data){
+                    alert(data.message);
+                }
+            })
+        }
+      </script>
+  </body>
+</html>

@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+    <style type="text/css">
+        .row{
+            margin: 5px;
+        }  
+    </style>
+
+    <title>Filter in Table</title>
+  </head>
+  <body>
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <div class="row">
+                    <div class="col">
+                      <select id="ddlGender" category="choice" name="Gender" class="form-control form-control-lg">
+                          <option value="">Select Gender</option>
+                      </select>
+                    </div>
+                    <div class="col">
+                      <select id="ddlCity" category="lookup" name="City" class="form-control form-control-lg">
+                          <option value="">Select City</option>
+                      </select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                      <select id="ddlProduct" category="lookup" name="Product" class="form-control form-control-lg">
+                          <option value="">Select Product</option>
+                      </select>
+                    </div>
+                    <div class="col">
+                        <button id="btnSearch" type="button" class="btn btn-primary mb-2">Search</button>
+                    </div>
+                </div>
+                <br><br>
+                <div class="col-12">
+                    <div class="table-responsive">
+                        <table id="tblCustomers" class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Full Name</th>
+                                    <th>Gender</th>
+                                    <th>City</th>
+                                    <th>Product</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>  
+    </div>
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+      <script type="text/javascript">
+        var site = _spPageContextInfo.siteAbsoluteUrl;
+        $(document).ready(function(){
+            GetGender();
+            GetCities();
+            GetProducts();
+            filterCustomers("");
+            $('#btnSearch').click(function(){
+                var filter = "";
+                var count = 0;
+                $('select :selected').each(function(index){
+                    if(($(this).val())){
+                        if(count > 0){
+                            filter += "and"
+                        }
+                        if($(this).parent().attr('category') == "lookup"){
+                            filter += "(" + $(this).parent().attr('name') + "/Title eq '" + $(this).val() + "')";
+                        }
+                        else{
+                            filter += "(" + $(this).parent().attr('name') + " eq '" + $(this).val() + "')";
+                        }
+                        count++;
+                    }
+                });
+                $('#tblCustomers tbody').empty();
+                if(filter != ""){
+                    filterCustomers(filter);
+                }
+                else{
+                    filterCustomers("");
+                }
+
+            })
+        });
+
+
+        function GetGender(){
+            $.ajax({
+                url: site + "/_vti_bin/listdata.svc/CustomersGender",
+                method: "GET",
+                headers: { "Accept": "application/json;odata=verbose" },
+                async: false,
+                success: function(data){
+                    var result = data.d.results;
+                    if(result.length > 0){
+                        var option = "";
+                        $.each(result, function(index, value){
+                            option += '<option value="' + value.Value + '">' + value.Value + '</option>';
+                        });
+                        $('#ddlGender').append(option);
+                    }
+                },
+                error: function(data){
+                    alert(data.message);
+                }
+            });
+        }
+          
+        function GetCities(){
+            $.ajax({
+                url: site + "/_api/lists/getbytitle('City')/items?$select=Title",
+                method: "GET",
+                headers: { "Accept": "application/json;odata=verbose" },
+                async: false,
+                success: function(data){
+                    var result = data.d.results;
+                    if(result.length > 0){
+                        var option = "";
+                        $.each(result, function(index, value){
+                            option += '<option value="' + value.Title + '">' + value.Title + '</option>';
+                        });
+                        $('#ddlCity').append(option);
+                    }
+                },
+                error: function(data){
+                    alert(data.message);
+                }
+            })
+        }
+          
+        function GetProducts(){
+            $.ajax({
+                url: site + "/_api/lists/getbytitle('Product')/items?$select=Title",
+                method: "GET",
+                headers: { "Accept": "application/json;odata=verbose" },
+                async: false,
+                success: function(data){
+                    var result = data.d.results;
+                    if(result.length > 0){
+                        var option = "";
+                        $.each(result, function(index, value){
+                            option += '<option value="' + value.Title + '">' + value.Title + '</option>';
+                        });
+                        $('#ddlProduct').append(option);
+                    }
+                },
+                error: function(data){
+                    alert(data.message);
+                }
+            })
+        }
+
+        function filterCustomers(filter){
+            if(filter != ""){
+                siteapi = site + "/_api/lists/getbytitle('Customers')/items?$select=Title,Gender,City/Title,Product/Title&$filter=" + filter + "&$expand=City,Product";
+            }
+            else{
+                siteapi = site + "/_api/lists/getbytitle('Customers')/items?$select=Title,Gender,City/Title,Product/Title&$expand=City,Product"
+            }
+            $.ajax({
+                url: siteapi,
+                method: "GET",
+                headers: { "Accept": "application/json;odata=verbose" },
+                async: false,
+                success: function(data){
+                    var result = data.d.results;
+                    var row = "";
+                    if(result.length > 0){
+                        $.each(result, function(index, value){
+                              row += "<tr><td>" + value.Title + "</td><td>" + value.Gender + "</td><td>" + value.City.Title + "</td><td>" + value.Product.Title + "</td></tr>";
+                        })
+                    }
+                    else{
+                        row += '<tr><td colspan="4">There is no item related to search.</td></tr>';
+                    }
+                    $('#tblCustomers tbody').append(row);
+                },
+                error: function(data){
+                    alert(data.message);
+                }
+            })
+        }
+      </script>
+  </body>
+</html>

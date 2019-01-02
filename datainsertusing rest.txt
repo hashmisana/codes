@@ -1,0 +1,369 @@
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>  
+function get_SP_lookup()
+{
+	<div>  
+		<label>Title:</label>  
+		<input type="text" id="txtTitle"/>
+		<label>Value:</label>  
+		 <select class="form-control" id="ddlPerformance">
+				<option value="-1">Select Performance</option>
+		  </select>
+		  <div id="resultDiv">your result is here... </div>
+		<button type="button" id="btnOK">OK</button>	
+	</div>
+	var id;
+	$(document).ready(function() { 
+				
+						$("#btnOK").click(function (){
+									GetItemDetails();
+						
+						});
+	});
+	function GetItemDetails()
+	{
+            $.ajax({
+                url: _spPageContextInfo.siteAbsoluteUrl + "/_api/lists/getbytitle('Multi')/items?$select=Performance/Title&$Expand=Performance",
+                method: "GET",
+                headers: { "Accept": "application/json;odata=verbose" },
+                async:false,
+                success: function(data){
+                    var result = data.d.results;
+                    var option = "";
+                    if(result.length > 0){
+                        $.each(result, function(index, value){
+                            option +=   "<p>"+value.Performance.Title+"</p>";
+          
+                        });
+                        $('#resultDiv').html(option );
+                    }	
+                },
+                error: function(data){
+                    alert("Something happens. Please try again");
+                }
+            });
+	}
+}
+function set_SP_LookUp()
+{
+	/*Here lookup value is coming from Performance list and Title column*/
+
+	<div>  
+		<label>Title:</label>  
+		<input type="text" id="txtTitle"/>
+		<label>Value:</label>  
+		 <select class="form-control" id="ddlPerformance">
+				<option value="-1">Select Performance</option>
+		  </select>
+		<button type="button" id="btnOK">OK</button>
+		
+	</div>
+	$(document).ready(function() { 
+					GetPerformance();    
+					$("#btnOK").click(function (){
+								var title = $('#inputName').val();
+								var performance = $('#ddlPerformance option:selected').val();
+								createListItem(title, performance);
+								
+					});
+	});
+	function GetPerformance()
+	{
+	
+            $.ajax({
+                url: _spPageContextInfo.webAbsoluteUrl + "/_api/lists/getbytitle('Performance')/items",
+                method: "GET",
+                headers: { "Accept": "application/json;odata=verbose" },
+                async:false,
+                success: function(data){
+                    var result = data.d.results;
+                    var option = "";
+                    if(result.length > 0){
+                        $.each(result, function(index, value){
+                            option += '<option value="' + value.Id + '">' + value.Title + '</option>'; 
+                        });
+                        $('#ddlPerformance').append(option);
+                    }
+                },
+                error: function(err){
+                    alert(err.message);
+                }
+            });
+    
+	}
+	function createListItem(title, performance)
+	{
+		debugger;		
+			
+	   $.ajax({  
+			url: _spPageContextInfo.webAbsoluteUrl + "/_api/web/lists/GetByTitle('Multi')/items",  
+			type: "POST",  
+			data: JSON.stringify({  
+				__metadata: {  
+					type: "SP.Data.MultiListItem" 	
+				},  
+				Title:$("#txtTitle").val(),
+				"PerformanceId": parseInt(performance)	
+			}),  
+			headers: {    
+				"Accept": "application/json;odata=verbose",    
+				"Content-Type": "application/json;odata=verbose",    
+				"X-RequestDigest": $("#__REQUESTDIGEST").val(),      
+			},  
+			success: function(data){  
+				alert("Data is saved successfully");  
+			},  
+			error: function(error){  
+				alert(JSON.stringify(error));  
+		   }  
+		});
+	} 
+}
+function set_SP_user()
+{
+	<div>  
+		<label>Title:</label>  
+		<input type="text" id="txtTitle"/>
+		<label>Value:</label>  
+		<input type="text" id="txtUrl"/>
+		<button type="button" id="btnOK">OK</button>
+		
+	</div>
+	$(document).ready(function() { 		
+		$("#btnOK").click(function (){							
+									Set_data();
+		});
+	});
+	function Set_data() 
+	{
+				debugger;
+	   $.ajax({  
+			url: _spPageContextInfo.webAbsoluteUrl + "/_api/web/lists/GetByTitle('Multi')/items",  
+			type: "POST",  
+			data: JSON.stringify({  
+				__metadata: {  
+					type: "SP.Data.MultiListItem" 	
+				},  
+				Title:$("#txtTitle").val(),
+				PersonId: _spPageContextInfo.userId	
+			}),  
+			headers: {    
+				"Accept": "application/json;odata=verbose",    
+				"Content-Type": "application/json;odata=verbose",    
+				"X-RequestDigest": $("#__REQUESTDIGEST").val(),      
+			},  
+			success: function(data){  
+				alert("Data is saved successfully");  
+			},  
+			error: function(error){  
+				alert(JSON.stringify(error));  
+		   }  
+		});
+	} 
+}
+function set_SP_url()
+{
+	 $(document).ready(function() {  
+				$("#btnOK").click(function ()
+				{
+										if(isUrlValid($("#txtUrl").val()))
+										   alert("valid");
+										 else 
+										   alert("invalid");
+					Set_data();
+				});
+		}); 
+	function isUrlValid(url)
+	{
+		return /^(https?|s?ftp):\/\/(((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:)*@)?(((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5]))|((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?)(:\d*)?)(\/((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)+(\/(([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)*)*)?)?(\?((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)|[\uE000-\uF8FF]|\/|\?)*)?(#((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)|\/|\?)*)?$/i.test(url);
+	}
+ 
+	function Set_data()
+	{
+		$.ajax({  
+				url: _spPageContextInfo.webAbsoluteUrl + "/_api/web/lists/GetByTitle('Multi')/items",  
+				type: "POST",  
+				data: JSON.stringify({  
+						__metadata: {
+										type: "SP.Data.MultiListItem" 	
+									},  
+						Title:$("#txtTitle").val(),
+						Hyperlink:{"Description": $("#txtUrl").val(), "Url":$("#txtUrl").val() }	
+						}),  
+				headers: {    
+						"Accept": "application/json;odata=verbose",    
+						"Content-Type": "application/json;odata=verbose",    
+						"X-RequestDigest": $("#__REQUESTDIGEST").val(),      
+						},  
+				success: function(data)
+							{  
+								alert("Data is saved successfully");  
+							},
+				error: function(error)
+							{  
+								alert(JSON.stringify(error));  
+							}  
+		});
+	} 
+} 
+function Set_SP_date()
+{
+  
+   $.ajax({  
+        url: _spPageContextInfo.webAbsoluteUrl + "/_api/web/lists/GetByTitle('Multi')/items",  
+        type: "POST",  
+        data: JSON.stringify({  
+            __metadata: {  
+                type: "SP.Data.MultiListItem" 	
+            },  
+            Title:$("#txtTitle").val(),
+			Date_Time:$("#txtDateBox").val()
+        }),  
+        headers:
+		{    
+            "Accept": "application/json;odata=verbose",    
+            "Content-Type": "application/json;odata=verbose",    
+            "X-RequestDigest": $("#__REQUESTDIGEST").val(),      
+        },  
+        success: function(data){  
+            alert("Data is saved successfully");  
+        },  
+        error: function(error){  
+            alert(JSON.stringify(error));  
+       }  
+    });
+} 
+
+function Set_SP_MultipleLine()
+{
+  
+   $.ajax({  
+        url: _spPageContextInfo.webAbsoluteUrl + "/_api/web/lists/GetByTitle('Multi')/items",  
+        type: "POST",  
+        data: JSON.stringify({  
+            __metadata: {  
+                type: "SP.Data.MultiListItem" 	
+            },  
+            Title:$("#txtTitle").val(),
+			Multilpe_line:$("#txtBox2").val()
+			
+        }),  
+        headers: {    
+            "Accept": "application/json;odata=verbose",    
+            "Content-Type": "application/json;odata=verbose",    
+            "X-RequestDigest": $("#__REQUESTDIGEST").val(),      
+        },  
+        success: function(data){  
+            alert("Data is saved successfully");  
+        },  
+        error: function(error){  
+            alert(JSON.stringify(error));  
+       }  
+    });
+}
+
+function set_SP_user()
+{ 
+	$.ajax({  
+			url: _spPageContextInfo.webAbsoluteUrl + "/_api/web/lists/GetByTitle('"+listname+"')/items",  
+			type: "POST",  
+			async: false,  
+			data: JSON.stringify({  
+				__metadata: {  
+					type: "SP.Data.Person%20and%20groupListItem"  
+				},  
+				UserNameId: UserId  
+			}),  
+			headers: {    
+				"Accept": "application/json;odata=verbose",    
+				"Content-Type": "application/json;odata=verbose",    
+				"X-RequestDigest": $("#__REQUESTDIGEST").val(),    
+				"X-HTTP-Method": "POST",  
+			},  
+			success: function(data){  
+				alert("User Name is saved successfully");  
+			},  
+			error: function(error){  
+				alert(JSON.stringify(error));  
+		   }  
+	});
+}
+ 
+function set_SP_multiple_choice()
+{
+	var selectedValues = [];
+	var data="";
+	$(document).ready(function(){
+		 
+			$("input[type='button']").click(function(){addNewItem();getchoicefield();});
+			
+		});
+	function get_multiple_checkbox()
+	{
+		
+		 $.each($("input[name='sport']:checked"), function(){            
+					selectedValues.push($(this).val());
+			});
+			 return selectedValues;
+	}
+	function addNewItem()
+	{
+		debugger;
+		var ListName="POC";
+		data = {
+					__metadata: {'type': 'SP.Data.'+ListName+'ListItem'},
+					'Title':"Bhawna Singh",
+					'Multi_choice':{"__metadata":{"type":"Collection(Edm.String)"},"results":get_multiple_checkbox()}
+
+				};
+		url= "/_api/Web/Lists/GetByTitle('"+ListName+"')/items";
+		$.ajax({
+				url: _spPageContextInfo.webAbsoluteUrl + url,
+				type: "POST",
+				headers: {
+					"accept": "application/json;odata=verbose",
+					"X-RequestDigest": $("#__REQUESTDIGEST").val(),
+					"content-Type": "application/json;odata=verbose"
+				},
+				data: JSON.stringify(data),
+				success: function (data) {
+					console.log(data);
+					alert("Data uploaded successfully");
+
+				},
+				error: function (error) {
+					alert(JSON.stringify(error));
+				}
+		});
+	}
+	function get_SP_choicefield()
+	{ 
+		ListName="POC";
+	    url= "/_api/Web/Lists/GetByTitle('"+ListName+"')/fields?$filter=EntityPropertyName eq 'Multi_choice'",
+		$.ajax({
+			url: _spPageContextInfo.webAbsoluteUrl + url,
+			type: "GET",
+			headers: {
+				"accept": "application/json;odata=verbose",
+			},
+			success: function (data) {
+				 console.log(data.d.results[0].Choices.results);
+				 alert(data.d.results[0].Choices.results);
+				Bind_into_choice(data)
+			},
+			error: function (error) {
+				alert(JSON.stringify(error));
+			}
+		});
+	}
+	function Bind_into_choice(data)
+	{
+		var items = data.d.results[0].Choices.results;  
+		var inputElement = "" 
+			for (var i = 0; i < items.length; i++)
+			{	
+				inputElement+='<label><input type="checkbox" value="'+data.d.results[0].Choices.results[i]+'" name="sport">"'+data.d.results[0].Choices.results[i]+'"</label></br>';
+			}
+		$('#div_for_choice').append(inputElement);
+	}
+
+}

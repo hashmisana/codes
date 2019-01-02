@@ -1,0 +1,22 @@
+using (ClientContext ctx = new ClientContext("https://wiprointech.sharepoint.com/sites/steria/"))
+{
+    Web web = ctx.Web;
+    List list = web.Lists.GetById(new Guid("a1256d9d-f813-4b57-a4bd-34344c858668"));
+    var q = new CamlQuery() { ViewXml = "<View><Query>
+    <Where>
+      <And>
+        <Eq><FieldRef Name='Department' /><Value Type='Lookup'>Mining</Value>
+        </Eq>
+        <And>
+        <Eq><FieldRef Name='Asset' /><Value Type='Lookup'>Bronze</Value></Eq>
+        <Eq><FieldRef Name='Status' /><Value Type='Choice'>Closed</Value></Eq>
+       </And>
+      </And>
+     </Where>
+     <OrderBy><FieldRef Name='ID' Ascending='True' /></OrderBy>
+     </Query>
+     </View>"};
+    var r = list.GetItems(q);
+    ctx.Load(r);
+    ctx.ExecuteQuery();                
+}
